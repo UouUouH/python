@@ -22,7 +22,7 @@ def parse_args():
 
     run it like this:
 
-    python change-mode.py ./ --dirmode 775 --filenode 664 --display 1
+    python change-mode.py ./ --dirmode 775 --filenode 666 --display 1
 
     if you have any question about it, feel free to contact me.
 
@@ -32,12 +32,12 @@ def parse_args():
     parser = optparse.OptionParser(usage)
 
     help = '''set the mode of dir
-              default = 755'''
+              default = 775'''
     parser.add_option('--dirmode', type = 'int', help = help, default = 775)
 
     help = '''set the mode of file
-              default = 444'''
-    parser.add_option('--filemode', type = 'int', help = help, default = 664)
+              default = 666'''
+    parser.add_option('--filemode', type = 'int', help = help, default = 666)
 
     help = '''display the commands have been run
               1: display
@@ -60,13 +60,46 @@ def parse_args():
     if options.display != 1 and options.display != 0:
         parser.error('--display should be 1 or 0')
 
-    return args, options.dirmode, options.filemode
+    return args, options
 
-def change_mode(dirs, dirmode, filemode):
-    if dirs == None:
-        parent_dirs = './'
+def change_mode(dirs,options):
+
+    
+    if len(dirs) == 0:
+        flag = True 
+        parent_dirs = os.getcwd() 
+        print "dir is ",parent_dirs
     else:
+        flag = False
         parent_dirs = dirs
+        print "dir is ",
+        for adir in parent_dirs:
+            print adir
+        print "\n"
+    filemode = options.filemode
+    dirmode = options.dirmode
+    display = options.display
+
+    print "the file mode bits of dir is ",dirmode
+    print "the file mode bits of file is ",filemode
+
+    user_order = raw_input("if you want to continue, please input 'Y'.or please input others:")
+    if user_order != 'Y':
+        print 'nothing changed'
+        return
+    if flag:
+
+        for root, children_dirs, children_files in os.walk(parent_dirs):
+            for afile in children_files:
+                file_command = 'chmod '+str(filemode)+' '+root+'/'+afile
+                print file_command
+                os.system(file_command)
+            dir_command = 'chmod '+str(dirmode)+' '+root
+            print dir_command
+            os.system(dir_command)
+            
+        return
+
     for adir in parent_dirs:
         for root, children_dirs, children_files in os.walk(adir):
             for afile in children_files:
@@ -78,8 +111,9 @@ def change_mode(dirs, dirmode, filemode):
             os.system(dir_command)
             
 def main():
-    dirs, dirmode, filemode = parse_args()
-    change_mode(dirs, dirmode, filemode)
+    dirs, options= parse_args()
+    
+    change_mode(dirs,options)
 
 if __name__ == '__main__':
     main()
